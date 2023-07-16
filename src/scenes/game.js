@@ -4,11 +4,12 @@ import boardHole from "../helpers/boardholes.js";
 import Modal from "../helpers/modal.js"
 import Zone from "../helpers/zone.js"
 import Card from "../helpers/cards.js"
+import h from "../helpers/videohelp.js"
 
 export default class Game extends Phaser.Scene {
   preload() {
 
-    this.load.html('video', '/src/scenes/video.html');
+    this.load.html('videodom', '/src/scenes/video.html');
 
     this.load.atlas(
       "sphere",
@@ -27,13 +28,18 @@ export default class Game extends Phaser.Scene {
   
     let userName = sessionStorage.getItem("userName");
     let roomName = sessionStorage.getItem("roomName");
-    //let playerNum = sessionStorage.getItem("playerNum")
     let playerNum = ''
     let playershand = []
     let cards_in_dropZone = []
     let newcardplayed = false
     let answer = ''
-    //let dropBoxCards = []
+    let myStream = ''
+    let pc = []
+    let screen = ''
+    let iceServers
+
+    // add dom to scene - used for WEBRTC stuff 
+    const container = this.add.dom(1375, 200).createFromCache('videodom');
 
     // Circle for connected players
     let c1 = this.add.circle(975, 105, 11, 0x000000)
@@ -49,7 +55,7 @@ export default class Game extends Phaser.Scene {
       playerNum = sessionStorage.getItem("playerNum")
       socket.emit("joinServer", { roomName, userName, playerNum });
       socket.on("connectToRoom", (users) => {
-        //console.log('data recieved from server: ', users)
+        console.log('data recieved from server: ', users)
         let playerobj = users.filter((e) => e.player === userName);
         sessionStorage.setItem("playerNum", playerobj[0].playernum);
 
@@ -117,6 +123,141 @@ export default class Game extends Phaser.Scene {
 
     let { gameBoard, TopHome, RightHome, LeftHome, BottomHome, topHome, rightHome, leftHome, bottomHome } = boardHole(this)
     
+ //----WebRTC 
+
+  //Get user video 
+  getAndSetUserStream();
+
+ socket.on( 'new user', ( data ) => {
+  iceServers = data.ice
+  console.log('ice info', iceServers)
+  socket.emit( 'newUserStart', { to: data.socketId, sender: socket.id} );
+  pc.push( data.socketId );
+  init( true, data.socketId );
+} );
+
+
+socket.on( 'newUserStart', ( data ) => {
+  pc.push( data.sender );
+  init( false, data.sender );
+} );
+
+socket.on( 'ice candidates', async ( data ) => {
+  console.log('ice candidate', data)
+  data.candidate ? await pc[data.sender].addIceCandidate( new RTCIceCandidate( data.candidate ) ) : '';
+} );
+
+socket.on( 'sdp', async ( data ) => {
+  console.log('SDP', data)
+  if ( data.description.type === 'offer' ) {
+      data.description ? await pc[data.sender].setRemoteDescription( new RTCSessionDescription( data.description ) ) : '';
+
+      h.getUserFullMedia().then( async ( stream ) => {
+          if ( !document.getElementById( 'local' ).srcObject ) {
+              h.setLocalStream( stream );
+          }
+
+          //save my stream
+          myStream = stream;
+
+          stream.getTracks().forEach( ( track ) => {
+              pc[data.sender].addTrack( track, stream );
+          } );
+
+          let answer = await pc[data.sender].createAnswer();
+
+          await pc[data.sender].setLocalDescription( answer );
+
+          socket.emit( 'sdp', { description: pc[data.sender].localDescription, to: data.sender, sender: socket.id } );
+      } ).catch( ( e ) => {
+          console.error( e );
+      } );
+  }
+
+  else if ( data.description.type === 'answer' ) {
+      await pc[data.sender].setRemoteDescription( new RTCSessionDescription( data.description ) );
+  }
+} );
+
+
+//When the video mute icon is clicked
+
+document.getElementById('toggle-video').addEventListener('click', (e) => {e.preventDefault();
+
+  let iconVideo = document.getElementById('buttonVideo')
+  console.log("video icon", iconVideo)
+  if (myStream.getVideoTracks()[0].enabled){
+    if (e.target.classList.contains('btn-outline-secondary')){
+      console.log('step1')
+    iconVideo.className = 'bi bi-camera-video-off-fill'
+    myStream.getVideoTracks()[0].enabled = false;
+    }
+    else if (e.target.classList.contains('bi-camera-video-fill') || e.target.classList.contains('btn-outline-secondary')){
+      console.log("step2")
+      e.target.classList.remove('bi-camera-video-fill');
+      e.target.classList.add('bi-camera-video-off-fill');
+      myStream.getVideoTracks()[0].enabled = false;
+      }
+    }
+  else {
+    if (e.target.classList.contains('btn-outline-secondary')){
+        console.log('step3')
+        iconVideo.className = 'bi bi-camera-video-fill'
+        myStream.getVideoTracks()[0].enabled = true;
+    }
+    else if(e.target.classList.contains('bi-camera-video-off-fill') || e.target.classList.contains('btn-outline-secondary')){
+        e.target.classList.remove('bi-camera-video-off-fill');
+        e.target.classList.add('bi-camera-video-fill');
+        myStream.getVideoTracks()[0].enabled = true;
+    }
+  }
+broadcastNewTracks(myStream, 'video')
+
+})
+
+
+//When the audio mute icon is clicked
+document.getElementById('toggle-mute').addEventListener('click', (e) => {
+e.preventDefault();
+console.log('toggle audio',e.target.classList)
+let iconAudio = document.getElementById('buttonAudio')
+  if (myStream.getAudioTracks()[0].enabled){
+    if (e.target.classList.contains('btn-outline-secondary')){
+      console.log('step1')
+      iconAudio.className = 'bi bi-mic-mute-fill'
+      myStream.getAudioTracks()[0].enabled = false;
+    }
+    else if (e.target.classList.contains('bi-mic-fill')){
+      console.log('step2')
+      e.target.classList.remove('bi-mic-fill');
+      e.target.classList.add('bi-mic-mute-fill');
+      myStream.getAudioTracks()[0].enabled = false;
+      }
+  }
+  else {
+    if (e.target.classList.contains('btn-outline-secondary')){
+        console.log('step3')
+        iconAudio.className = 'bi bi-mic-fill'
+        myStream.getAudioTracks()[0].enabled = true;
+    }
+    else if(e.target.classList.contains('bi-mic-mute-fill')){
+        console.log('step4')
+        e.target.classList.remove('bi-mic-mute-fill');
+        e.target.classList.add('bi-mic-fill');
+        myStream.getAudioTracks()[0].enabled = true;
+    }
+  }
+broadcastNewTracks(myStream, 'audio')
+});
+
+socket.on('user-disconnected', userId => {
+  console.log('user disconnected', userId, pc)
+  if ( document.getElementById( `${userId}-video` ) ) {
+    
+      document.getElementById( `${userId}-video` ).remove();
+  }
+})
+
     // ------------------ Players Marbles creation ------------------------
     // Top Marbles
     let t1 = playerMarble(this, 370, 100, 'sphere', 'g', 't1')
@@ -160,6 +301,7 @@ export default class Game extends Phaser.Scene {
         .on('pointerdown', () => socket.emit('dealCardsclient'))
         .on('pointerover', () => this.resetGame.setStyle({ fill: '#ff0000' }))
         .on('pointerout', () => this.resetGame.setStyle({ fill: '#ffffff' }))
+
     this.resetGame.setVisible(true)
     
     const options = { font: '18px Arial', fill: '#ffffff', align: 'center',}
@@ -174,8 +316,7 @@ export default class Game extends Phaser.Scene {
     this.colorsturn = this.add.text(1025, 190, '', { color: 'white', fontSize: 'bold 30px', align: 'center' }).setOrigin(0.5)
 
 
-    // add dom to scene - used for WEBRTC stuff 
-    const container = this.add.dom(1375, 20).createFromCache('video');
+    
     
     // ---- Player Ball lookup table   
     const playerBallLookup = {
@@ -192,11 +333,21 @@ export default class Game extends Phaser.Scene {
         sessionStorage.removeItem("userName");
         sessionStorage.removeItem("roomName");
         sessionStorage.removeItem("playerNum")
+        sessionStorage.removeItem('playerName1')
+        sessionStorage.removeItem('playerName2')
+        sessionStorage.removeItem('playerName3')
+        sessionStorage.removeItem('playerName4')
         socket.disconnect();
         window.location.href = "../../index.html";
       });
       modal.setMessage('This game has four players already. Please choose another Game Name.\n');
       modal.show(); 
+    })
+
+    socket.on('alertmsg', () => {
+      console.log('alert message')
+      modal.setMessage('Not all four players have joined the game yet.\n');
+      modal.show();
     })
 
     socket.on('winners', (data) => {
@@ -377,9 +528,7 @@ export default class Game extends Phaser.Scene {
           gameObject.clearTint()
           gameObject.disableInteractive({ useHandCursor: false, draggable: false})
           gameObject.input.enabled = false
-          //dropBoxCards.push(gameObject.frame.name)
           newcardplayed = true
-          console.log("players hand just before dropzone", playershand)
           socket.emit('cardPlayedclient', gameObject.frame.name, sessionStorage.getItem('playerNum'), playershand.indexOf(gameObject), socket.id)
           gameObject.destroy()
 
@@ -571,12 +720,12 @@ export default class Game extends Phaser.Scene {
     } // end of greenRedMarbles
 
 
-      function objdragStart(obj) {
+    function objdragStart(obj) {
         obj.x = obj.input.dragStartX
         obj.y = obj.input.dragStartY
       }
 
-      function move_partners_Marble(item) {
+    function move_partners_Marble(item) {
         console.log('move partner marble ', item.name)
         item.x = item.getData('homeX')
         item.y = item.getData('homeY')
@@ -681,10 +830,141 @@ export default class Game extends Phaser.Scene {
           return false
       }
   }
+//---------------------------------------------
+ // -- webRTC function
+
+ function getAndSetUserStream() {
+  console.log('video video video')
+  h.getUserFullMedia().then( ( stream ) => {
+      //save my stream
+      myStream = stream;
+
+      h.setLocalStream( stream );
+  } ).catch( ( e ) => {
+      console.error( `stream error: ${ e }` );
+  } );
+}
+
+function init( createOffer, partnerName ) {
+  console.log("init- create offer",partnerName)
+  pc[partnerName] = new RTCPeerConnection( iceServers );
+
+  if ( screen && screen.getTracks().length ) {
+      screen.getTracks().forEach( ( track ) => {
+          pc[partnerName].addTrack( track, screen );//should trigger negotiationneeded event
+      } );
+  }
+
+  else if ( myStream ) {
+      myStream.getTracks().forEach( ( track ) => {
+          pc[partnerName].addTrack( track, myStream );//should trigger negotiationneeded event
+      } );
+  }
+
+  else {
+      h.getUserFullMedia().then( ( stream ) => {
+          //save my stream
+          myStream = stream;
+
+          stream.getTracks().forEach( ( track ) => {
+              pc[partnerName].addTrack( track, stream );//should trigger negotiationneeded event
+          } );
+
+          h.setLocalStream( stream );
+      } ).catch( ( e ) => {
+          console.error( `stream error: ${ e }` );
+      } );
+  }
 
 
 
+  //create offer
+  if ( createOffer ) {
+      pc[partnerName].onnegotiationneeded = async () => {
+          let offer = await pc[partnerName].createOffer();
 
+          await pc[partnerName].setLocalDescription( offer );
+
+          socket.emit( 'sdp', { description: pc[partnerName].localDescription, to: partnerName, sender: socket.id } );
+      };
+  }
+
+
+
+  //send ice candidate to partnerNames
+  pc[partnerName].onicecandidate = ( { candidate } ) => {
+      socket.emit( 'ice candidates', { candidate: candidate, to: partnerName, sender: socket.id } );
+  };
+
+
+
+  //add
+  pc[partnerName].ontrack = ( e ) => {
+      let str = e.streams[0];
+      if ( document.getElementById( `${ partnerName }-video` ) ) {
+          document.getElementById( `${ partnerName }-video` ).srcObject = str;
+      }
+
+      else {
+          //video elem
+          let newVid = document.createElement( 'video' );
+          newVid.id = `${ partnerName }-video`;
+          newVid.srcObject = str;
+          newVid.autoplay = true;
+          newVid.className = 'remote-video';
+          newVid.disablePictureInPicture = true;
+          videos.append(newVid);
+  
+          document.getElementById( 'videos' ).appendChild( newVid );
+
+          //h.adjustVideoElemSize();
+      }
+  };
+
+
+
+  pc[partnerName].onconnectionstatechange = ( d ) => {
+      switch ( pc[partnerName].iceConnectionState ) {
+          case 'disconnected':
+          case 'failed':
+              h.closeVideo( partnerName );
+              break;
+
+          case 'closed':
+              h.closeVideo( partnerName );
+              break;
+      }
+  };
+
+
+
+  pc[partnerName].onsignalingstatechange = ( d ) => {
+      switch ( pc[partnerName].signalingState ) {
+          case 'closed':
+              console.log( "Signalling state is 'closed'" );
+              h.closeVideo( partnerName );
+              break;
+      }
+  };
+}  // end of function
+
+function broadcastNewTracks( stream, type, mirrorMode = true ) {
+  h.setLocalStream( stream, mirrorMode );
+
+  let track = type == 'audio' ? stream.getAudioTracks()[0] : stream.getVideoTracks()[0];
+
+  for ( let p in pc ) {
+      let pName = pc[p];
+
+      if ( typeof pc[pName] == 'object' ) {
+          h.replaceTrack( track, pc[pName] );
+      }
+  }
+}
+
+
+
+//============================================
     
   } // --- end of PHASER CREATE function
 

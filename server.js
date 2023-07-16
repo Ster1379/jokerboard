@@ -4,6 +4,7 @@ import { createServer } from "http";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
 import path from "path";
+import 'dotenv/config';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -22,6 +23,8 @@ server.listen(PORT, () => {
 let users = [];
 let marblestate = [];
 let cardstate = [];
+let iceinfo = getIceServer()
+console.log("ice", iceinfo)
 
 io.on("connection", (socket) => {
   console.log("User connected..  ", socket.id);
@@ -31,32 +34,30 @@ io.on("connection", (socket) => {
     console.log("join server", roomName, userName, playerNum)
     socket.join(roomName);
 
-    if (getClientCount(roomName) > 2){
-      console.log('too many players detected')
+    if (getClientCount(roomName) > 1 && getClientCount(roomName) <= 4 ){
+      socket.to(roomName).emit('new user', {socketId: socket.id, ice: iceinfo});
+    }
+    if (getClientCount(roomName) > 4){
+      console.log('too many players detected',getClientCount(roomName)  )
       users.push({ gameName: roomName, player: userName, id: socket.id, playernum: '5',})
       io.to(socket.id).emit('playerWarning')
-  }else
-  
-    if (playerNum === '1' || playerNum === '2' || playerNum === '3' || playerNum === '4' ){
+  } else if (playerNum === '1' || playerNum === '2' || playerNum === '3' || playerNum === '4' ){
       users.push({ gameName: roomName, player: userName, id: socket.id, playernum: playerNum, })
-    } else
-    if(playerNum === null && getClientCount(roomName) === 1){
+    } 
+    else if(playerNum === null && getClientCount(roomName) === 1){
       users.push({ gameName: roomName, player: userName, id: socket.id, playernum: '1', });
     } else if (playerNum === null && getClientCount(roomName) === 2) {
       users.push({ gameName: roomName, player: userName, id: socket.id, playernum: '2',  });
-    } else if (playerNum === null || playerNum === 3 && getClientCount(roomName) === 3) {
+    } else if (playerNum === null && getClientCount(roomName) === 3) {
       users.push({ gameName: roomName, player: userName, id: socket.id, playernum: '3', });
-    } else if (playerNum === null || playerNum === 4 && getClientCount(roomName) === 4) {
+    } else if (playerNum === null && getClientCount(roomName) === 4) {
       users.push({ gameName: roomName, player: userName, id: socket.id, playernum: '4', });
     }
-
+    
      // -------------WebRTC stuff ---------------------
-    //  socket.on('disconnect', () => {
-    //   console.log('user disconnected', data.socketId)
-    //   socket.to( data.room ).emit( 'user-disconnected', data.socketId)
-    //   });
 
       socket.on( 'newUserStart', ( data ) => {
+        //console.log('new user joins:', data.sender, data.to)
           socket.to( data.to ).emit( 'newUserStart', { sender: data.sender } );
       } );
 
@@ -128,25 +129,33 @@ io.on("connection", (socket) => {
     })
 
     socket.on('dealCardsclient', () => {
-      io.to(roomName).emit('startNewGame')  // clear cards from board
-      const {hand1, hand2, hand3, hand4, gameDeck, cardsplayed} = createHands()
-      cardstate.push({roomName, hand1,hand2,hand3,hand4,gameDeck,cardsplayed})
-      let guests = users.filter((function(e){return e.gameName === roomName;}))
-      //console.log('guest info', guests.length)
-      if (guests.length === 2 ){
-          if (guests[0].playernum === '1'){
+       let guests = users.filter((function(e){return e.gameName === roomName;}))
+       if(guests.length !== 4){
+        console.log("number of players not equal to 4")
+        io.to(socket.id).emit('alertmsg')
+       } else {
+          const indexCardstate = cardstate.findIndex((e) => e.roomName === roomName)
+          cardstate.splice(indexCardstate,1)
+        
+          io.to(roomName).emit('startNewGame')  // clear cards from board
+          const {hand1, hand2, hand3, hand4, gameDeck, cardsplayed} = createHands()
+          cardstate.push({roomName, hand1,hand2,hand3,hand4,gameDeck,cardsplayed})
+
+           if (guests[0].playernum === '1'){
               io.to(guests[0].id).emit('cards', hand1)
-          }
-          if (guests[1].playernum === '2'){
+           }
+           if (guests[1].playernum === '2'){
               io.to(guests[1].id).emit('cards', hand2)
-          }
-         // if (guests[2].playernum === '3'){
-             // io.to(guests[2].id).emit('cards', hand3)
-         // }
-          //if (guests[3].playernum === '4'){
-            //  io.to(guests[3].id).emit('cards', hand4)
-          //}
-      }
+           }
+           if (guests[2].playernum === '3'){
+             io.to(guests[2].id).emit('cards', hand3)
+           }
+           if (guests[3].playernum === '4'){
+             io.to(guests[3].id).emit('cards', hand4)
+           }
+
+       }
+        
   })
 
   socket.on('cardPlayedclient', function (gameObj, board ,pos,sock) {
@@ -203,11 +212,36 @@ io.on("connection", (socket) => {
     if(playersInRoom.length > 0){
       io.in(playerinfo[0].gameName).emit('connectToRoom', playersInRoom)
       //console.log("remaining player", playersInRoom)
+      io.in(playerinfo[0].gameName).emit( 'user-disconnected', socket.id)
     }
-
+      
   });
 });
 // ----- FUNCTION Section -----------
+
+function getIceServer() {
+        
+  return {
+      iceServers: [
+          {
+              urls: ["stun:us-turn12.xirsys.com"]
+          },
+          {
+              username: process.env.LOGONID,
+              credential: process.env.CREDENTIAL,
+              urls: [
+                  "turn:us-turn12.xirsys.com:80?transport=udp",
+                  "turn:us-turn12.xirsys.com:3478?transport=udp",
+                  "turn:us-turn12.xirsys.com:80?transport=tcp",
+                  "turn:us-turn12.xirsys.com:3478?transport=tcp",
+                  "turns:us-turn12.xirsys.com:443?transport=tcp",
+                  "turns:us-turn12.xirsys.com:5349?transport=tcp"
+
+              ]
+          }
+      ]
+  };
+}
 
 function getClientCount(roomName) {
   const room = io.sockets.adapter.rooms.get(roomName);
