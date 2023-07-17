@@ -295,9 +295,9 @@ socket.on('user-disconnected', userId => {
     const options = { font: '18px Arial', fill: '#ffffff', align: 'center',}
     const playerName1Text = this.add.text(t3.x, t3.y+32, '', options).setOrigin(0.5);
     const playerName2Text = this.add.text(r5.x, r5.y+32, '', options).setOrigin(0.5);
-    const playerName3Text = this.add.text(l5.x, l5.y-32, '', options).setOrigin(0.5);
-    const playerName4Text = this.add.text(b3.x, b3.y-32, '', options).setOrigin(0.5);
-
+    const playerName3Text = this.add.text(b3.x, b3.y-32, '', options).setOrigin(0.5);
+    const playerName4Text = this.add.text(l5.x, l5.y-32, '', options).setOrigin(0.5);
+    
     this.textMarker = this.add.text(0, 0, '*', { color: 'white', fontSize: 'bold 60px', align: 'center'}).setOrigin(0.5);
     this.textMarker.setVisible(false);
 
