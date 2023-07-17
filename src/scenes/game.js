@@ -95,7 +95,6 @@ export default class Game extends Phaser.Scene {
     });
 
     socket.on('disconnect', () => {
-      console.log("disconnected", playerNum, sessionStorage.getItem("playerNum"))
       modal.setMessage('The game has detected that you are having a network issue. Please wait for the GREEN indicators to return.\n\n');
       modal.show(); 
 
@@ -143,12 +142,10 @@ socket.on( 'newUserStart', ( data ) => {
 } );
 
 socket.on( 'ice candidates', async ( data ) => {
-  console.log('ice candidate', data)
   data.candidate ? await pc[data.sender].addIceCandidate( new RTCIceCandidate( data.candidate ) ) : '';
 } );
 
 socket.on( 'sdp', async ( data ) => {
-  console.log('SDP', data)
   if ( data.description.type === 'offer' ) {
       data.description ? await pc[data.sender].setRemoteDescription( new RTCSessionDescription( data.description ) ) : '';
 
@@ -185,15 +182,12 @@ socket.on( 'sdp', async ( data ) => {
 document.getElementById('toggle-video').addEventListener('click', (e) => {e.preventDefault();
 
   let iconVideo = document.getElementById('buttonVideo')
-  console.log("video icon", iconVideo)
   if (myStream.getVideoTracks()[0].enabled){
     if (e.target.classList.contains('btn-outline-secondary')){
-      console.log('step1')
     iconVideo.className = 'bi bi-camera-video-off-fill'
     myStream.getVideoTracks()[0].enabled = false;
     }
     else if (e.target.classList.contains('bi-camera-video-fill') || e.target.classList.contains('btn-outline-secondary')){
-      console.log("step2")
       e.target.classList.remove('bi-camera-video-fill');
       e.target.classList.add('bi-camera-video-off-fill');
       myStream.getVideoTracks()[0].enabled = false;
@@ -201,7 +195,6 @@ document.getElementById('toggle-video').addEventListener('click', (e) => {e.prev
     }
   else {
     if (e.target.classList.contains('btn-outline-secondary')){
-        console.log('step3')
         iconVideo.className = 'bi bi-camera-video-fill'
         myStream.getVideoTracks()[0].enabled = true;
     }
@@ -219,16 +212,13 @@ broadcastNewTracks(myStream, 'video')
 //When the audio mute icon is clicked
 document.getElementById('toggle-mute').addEventListener('click', (e) => {
 e.preventDefault();
-console.log('toggle audio',e.target.classList)
 let iconAudio = document.getElementById('buttonAudio')
   if (myStream.getAudioTracks()[0].enabled){
     if (e.target.classList.contains('btn-outline-secondary')){
-      console.log('step1')
       iconAudio.className = 'bi bi-mic-mute-fill'
       myStream.getAudioTracks()[0].enabled = false;
     }
     else if (e.target.classList.contains('bi-mic-fill')){
-      console.log('step2')
       e.target.classList.remove('bi-mic-fill');
       e.target.classList.add('bi-mic-mute-fill');
       myStream.getAudioTracks()[0].enabled = false;
@@ -236,12 +226,10 @@ let iconAudio = document.getElementById('buttonAudio')
   }
   else {
     if (e.target.classList.contains('btn-outline-secondary')){
-        console.log('step3')
         iconAudio.className = 'bi bi-mic-fill'
         myStream.getAudioTracks()[0].enabled = true;
     }
     else if(e.target.classList.contains('bi-mic-mute-fill')){
-        console.log('step4')
         e.target.classList.remove('bi-mic-mute-fill');
         e.target.classList.add('bi-mic-fill');
         myStream.getAudioTracks()[0].enabled = true;
@@ -345,13 +333,11 @@ socket.on('user-disconnected', userId => {
     })
 
     socket.on('alertmsg', () => {
-      console.log('alert message')
       modal.setMessage('Not all four players have joined the game yet.\n');
       modal.show();
     })
 
     socket.on('winners', (data) => {
-      console.log("winner data: ", data)
       this.resetGame.setVisible(true)
       answer = ''
       this.colorsturn.text = ''
@@ -366,7 +352,7 @@ socket.on('user-disconnected', userId => {
 
     socket.on('colourturn', (data) => {
       this.colorsturn.text = data
-      console.log('color text data', this.colorsturn.text)
+      //console.log('color text data', this.colorsturn.text)
    })
 
     socket.on("moveObject", (obj) => {
@@ -394,7 +380,6 @@ socket.on('user-disconnected', userId => {
 
     // cardPlayed - shows the card being played by the other player(s)
     socket.on('cardPlayed', (gameObj) => {
-      console.log('cardPlayer', gameObj)
       newcardplayed = true
       let playerCard = new Card(this);
       let obj = playerCard.render(1025, 375, 'cards', gameObj)
@@ -439,9 +424,7 @@ socket.on('user-disconnected', userId => {
   })
 
   socket.on('newcard', (newcard, pos) => {
-    console.log('newcard', pos, newcard)
     let card = new Card(this)
-    console.log("-----New Card-----", card)
     let obj = card.render(900 + (pos * 50), 680, 'cards', newcard)
     obj.setDepth(pos)
     obj.name = newcard
@@ -450,7 +433,7 @@ socket.on('user-disconnected', userId => {
  })
 
     socket.on('updateGameState', (data, cardhand, lastcardplayed) => {
-     console.log('game update recieved::::: ----->', cardhand, lastcardplayed )
+     //console.log('game update recieved::::: ----->', cardhand, lastcardplayed )
       if (data.length !== 0) {
         t1.x = data[0][1].x, t1.y = data[0][1].y, t2.x = data[0][2].x, t2.y = data[0][2].y
         t3.x = data[0][3].x, t3.y = data[0][3].y, t4.x = data[0][4].x, t4.y = data[0][4].y, t5.x = data[0][5].x, t5.y = data[0][5].y
@@ -545,7 +528,7 @@ socket.on('user-disconnected', userId => {
           this.physics.world.overlap(gameObject, [l1, l2, l3, l4, l5, r1, r2, r3, r4, r5], yellowBlueMarbles)
           this.physics.world.overlap(gameObject, [t1,t2,t3,t4,t5,b1,b2,b3,b4,b5], greenRedMarbles)
           const newGameButtonStatus = this.resetGame.visible;
-          console.log('reset status', newGameButtonStatus)
+          //console.log('reset status', newGameButtonStatus)
           //-- updates the server on the marblestate which should be the same for everyone
           this.marblestate = [roomName, t1, t2, t3, t4, t5, r1, r2, r3, r4, r5, b1, b2, b3, b4, b5, l1, l2, l3, l4, l5, this.colorsturn.text, newGameButtonStatus]
          
@@ -587,7 +570,7 @@ socket.on('user-disconnected', userId => {
     }
     
     let yellowBlueMarbles = (obj, playersmarble) => {
-      console.log('yellowBlue Marble FUNCTION: ', obj.frame.name, playersmarble.frame.name)
+      //console.log('yellowBlue Marble FUNCTION: ', obj.frame.name, playersmarble.frame.name)
 
       const bhfWithBlue = this.physics.world.overlap([r1, r2, r3, r4, r5], RightHome)
       const bhfWithYellow = this.physics.world.overlap([l1, l2, l3, l4, l5], RightHome)
@@ -652,7 +635,7 @@ socket.on('user-disconnected', userId => {
     } // end of yellowBlueMarbles
 
     let greenRedMarbles = (obj, playersmarble) => {
-      console.log('yellowBlue Marble FUNCTION: ', obj.frame.name, playersmarble.frame.name)
+     // console.log('yellowBlue Marble FUNCTION: ', obj.frame.name, playersmarble.frame.name)
 
       const rhfWithBlue = this.physics.world.overlap([r1, r2, r3, r4, r5], BottomHome)
       const rhfWithYellow = this.physics.world.overlap([l1, l2, l3, l4, l5], BottomHome)
@@ -726,14 +709,12 @@ socket.on('user-disconnected', userId => {
       }
 
     function move_partners_Marble(item) {
-        console.log('move partner marble ', item.name)
         item.x = item.getData('homeX')
         item.y = item.getData('homeY')
         socket.emit('player', item)
     }
 
     function move_opponets_Marble(item) {
-        console.log('move opponets marble ', item.name)
         item.x = item.getData('X')
         item.y = item.getData('Y')
         socket.emit('player', item)
@@ -741,7 +722,6 @@ socket.on('user-disconnected', userId => {
 
 
     function playerStart(pos, obj) {
-        console.log('player start', pos)
         obj.x = pos.x
         obj.y = pos.y
         pos.x = pos.getData('X')
@@ -750,7 +730,6 @@ socket.on('user-disconnected', userId => {
     }
 
     function playerHome(pos, obj) {
-        console.log('player home', pos)
         obj.x = pos.x
         obj.y = pos.y
         pos.x = pos.getData('homeX')
@@ -759,7 +738,7 @@ socket.on('user-disconnected', userId => {
     }
 
     let playersturn = (obj, greenfull, yellowfull, redfull, bluefull) => {
-      console.log('colour', obj.frame.name, answer, greenfull, yellowfull, redfull, bluefull)
+      //console.log('colour', obj.frame.name, answer, greenfull, yellowfull, redfull, bluefull)
 
        if (obj.frame.name === 'g' && yellowfull && answer === `${sessionStorage.getItem('playerName3')}'s turn\nmoving Green`) {
            answer = `${sessionStorage.getItem('playerName4')}'s turn\nmoving Blue`
@@ -834,7 +813,6 @@ socket.on('user-disconnected', userId => {
  // -- webRTC function
 
  function getAndSetUserStream() {
-  console.log('video video video')
   h.getUserFullMedia().then( ( stream ) => {
       //save my stream
       myStream = stream;
@@ -846,7 +824,7 @@ socket.on('user-disconnected', userId => {
 }
 
 function init( createOffer, partnerName ) {
-  console.log("init- create offer",partnerName)
+  //console.log("init- create offer",partnerName)
   pc[partnerName] = new RTCPeerConnection( iceServers );
 
   if ( screen && screen.getTracks().length ) {
@@ -941,7 +919,7 @@ function init( createOffer, partnerName ) {
   pc[partnerName].onsignalingstatechange = ( d ) => {
       switch ( pc[partnerName].signalingState ) {
           case 'closed':
-              console.log( "Signalling state is 'closed'" );
+              //console.log( "Signalling state is 'closed'" );
               h.closeVideo( partnerName );
               break;
       }

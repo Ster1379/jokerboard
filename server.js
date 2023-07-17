@@ -24,7 +24,6 @@ let users = [];
 let marblestate = [];
 let cardstate = [];
 let iceinfo = getIceServer()
-console.log("ice", iceinfo)
 
 io.on("connection", (socket) => {
   console.log("User connected..  ", socket.id);

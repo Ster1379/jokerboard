@@ -10,7 +10,7 @@ const socket = io({ transports: ["websocket"] });
   }
   
   let yellowBlueMarbles = (obj, playersmarble) => {
-    console.log('yellowBlue Marble FUNCTION: ', obj.frame.name, playersmarble.frame.name)
+    //console.log('yellowBlue Marble FUNCTION: ', obj.frame.name, playersmarble.frame.name)
 
     const bhfWithBlue = this.physics.world.overlap([r1, r2, r3, r4, r5], RightHome)
     const bhfWithYellow = this.physics.world.overlap([l1, l2, l3, l4, l5], RightHome)
@@ -75,7 +75,7 @@ const socket = io({ transports: ["websocket"] });
   } // end of yellowBlueMarbles
 
   let greenRedMarbles = (obj, playersmarble) => {
-    console.log('yellowBlue Marble FUNCTION: ', obj.frame.name, playersmarble.frame.name)
+    //console.log('yellowBlue Marble FUNCTION: ', obj.frame.name, playersmarble.frame.name)
 
     const rhfWithBlue = this.physics.world.overlap([r1, r2, r3, r4, r5], BottomHome)
     const rhfWithYellow = this.physics.world.overlap([l1, l2, l3, l4, l5], BottomHome)
