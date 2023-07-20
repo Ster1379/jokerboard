@@ -1,5 +1,1 @@
 On line card game for four players with video using WebRTC.
-
-
-LOGONID = "n8k7T74KxBy_BoK6SeLI4DBDbRI2E1NMg14iKZK4K6WPA0zD-Mcs4Yzc4B66N9JeAAAAAGCgXB1zdHJlZXRlcmI="
-CREDENTIAL = "0b400954-b5d7-11eb-99a8-0242ac120004"
