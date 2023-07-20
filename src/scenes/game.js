@@ -39,7 +39,7 @@ export default class Game extends Phaser.Scene {
     let iceServers
 
     // add dom to scene - used for WEBRTC stuff 
-    const container = this.add.dom(1375, 200).createFromCache('videodom');
+    const container = this.add.dom(1375, 250).createFromCache('videodom');
 
     // Circle for connected players
     let c1 = this.add.circle(975, 105, 11, 0x000000)
@@ -75,19 +75,19 @@ export default class Game extends Phaser.Scene {
         let result4 = users.find((e) => e.playernum === '4')
  
         if (result1 !== undefined) {
-          playerName1Text.text  = result1.player
+          playerName1Text.text = result1.player
           sessionStorage.setItem('playerName1', result1.player )
         }
         if (result2 !== undefined) {
-          playerName2Text.text  = result2.player
+          playerName2Text.text = result2.player
           sessionStorage.setItem('playerName2', result2.player )
         }
         if (result3 !== undefined) {
-          playerName3Text.text  = result3.player
+          playerName3Text.text = result3.player
           sessionStorage.setItem('playerName3', result3.player )
         }
         if (result4 !== undefined) {
-          playerName4Text.text  = result4.player
+          playerName4Text.text = result4.player
           sessionStorage.setItem('playerName4', result4.player )
         }
         
@@ -298,6 +298,7 @@ socket.on('user-disconnected', userId => {
     const playerName3Text = this.add.text(b3.x, b3.y-32, '', options).setOrigin(0.5);
     const playerName4Text = this.add.text(l5.x, l5.y-32, '', options).setOrigin(0.5);
     
+
     this.textMarker = this.add.text(0, 0, '*', { color: 'white', fontSize: 'bold 60px', align: 'center'}).setOrigin(0.5);
     this.textMarker.setVisible(false);
 
