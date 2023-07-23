@@ -95,7 +95,7 @@ io.on("connection", (socket) => {
     }
     //console.log('filtered game status', socket.id)
     io.to(socket.id).emit("updateGameState", gamestatusupdate, hand, lastcard);
-  
+    
     io.to(roomName).emit("connectToRoom", users.filter((e) => e.gameName === roomName));
     
     socket.on("objMoveData", (obj) => {
@@ -114,6 +114,17 @@ io.on("connection", (socket) => {
     socket.on('winner', (data) => {
       console.log('winner', data)
       io.in(roomName).emit('winners', data)
+    })
+
+    socket.on('nameUpdate', (data, id, playernum) =>{
+      //console.log('nameUpdate', data, id)
+      //console.log('user DB', users)
+      //const info = users.filter((e) => e.id === socket.id) //get player info
+      const index = users.findIndex((e) => e.id === id); //get index of user disconnected
+      console.log('users data', index, users[index])
+      users[index].player = data
+      console.log('update data', users[index],roomName)
+      socket.to(roomName).emit('updateName', data, playernum)
     })
 
     socket.on('colourturnclient', (data) => {

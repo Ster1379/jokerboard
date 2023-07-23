@@ -15,8 +15,10 @@ export default class Modal extends Phaser.GameObjects.Container {
       this.add(this.messageText);
   
       // Create the close button
-      const closeButton = scene.add.text(0, 40, 'Close', { font: '24px Arial', fill: '#ffffff' });
+      const closeButton = scene.add.text(0, 40, 'Close', { font: '24px Arial', fill: '#000000' });
       closeButton.setOrigin(0.5);
+      closeButton.setPadding(5);
+      closeButton.setStyle({ backgroundColor: '#FFF'})
       closeButton.setInteractive();
       closeButton.on('pointerdown', () => {
         this.hide();

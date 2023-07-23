@@ -5,6 +5,7 @@ import Modal from "../helpers/modal.js"
 import Zone from "../helpers/zone.js"
 import Card from "../helpers/cards.js"
 import h from "../helpers/videohelp.js"
+import CustomModal from "../helpers/changename.js"
 
 export default class Game extends Phaser.Scene {
   preload() {
@@ -102,19 +103,6 @@ export default class Game extends Phaser.Scene {
       c2.fillColor = 0x000000
       c3.fillColor = 0x000000
       c4.fillColor = 0x000000
-
-      // if (sessionStorage.getItem("playerNum") === '1'){
-      //   c1.fillColor = 0x000000
-      // }
-      // if (sessionStorage.getItem("playerNum") === '2'){
-      //   c2.fillColor = 0x000000
-      // }
-      // if (sessionStorage.getItem("playerNum") === '3'){
-      //   c3.fillColor = 0x000000
-      // }
-      // if (sessionStorage.getItem("playerNum") === '4'){
-      //   c4.fillColor = 0x000000
-      // }
       
     });
 
@@ -246,6 +234,24 @@ socket.on('user-disconnected', userId => {
   }
 })
 
+socket.on('updateName', (data, playernum) => {
+  console.log('update the name on board', data, playernum, typeof playernum)
+  if (playernum === 1){
+    sessionStorage.setItem('playerName1', data)
+    playerName1Text.text = data;
+  } else if (playernum === 2){
+    sessionStorage.setItem('playerName2', data)
+    playerName2Text.text = data;
+  } else if (playernum === 3){
+    sessionStorage.setItem('playerName3', data)
+    playerName3Text.text = data;
+  } else if (playernum === 4){
+    sessionStorage.setItem('playerName4', data)
+    playerName4Text.text = data;
+  }
+
+})
+
     // ------------------ Players Marbles creation ------------------------
     // Top Marbles
     let t1 = playerMarble(this, 370, 100, 'sphere', 'g', 't1')
@@ -293,11 +299,32 @@ socket.on('user-disconnected', userId => {
     this.resetGame.setVisible(true)
     
     const options = { font: '18px Arial', fill: '#ffffff', align: 'center',}
-    const playerName1Text = this.add.text(t3.x, t3.y+32, '', options).setOrigin(0.5);
-    const playerName2Text = this.add.text(r5.x, r5.y+32, '', options).setOrigin(0.5);
+
+    const playerName1Text = this.add.text(t3.x, t3.y + 32, '', options).setOrigin(0.5);
+    playerName1Text.setInteractive({ useHandCursor: true }).on('pointerdown', () => {
+      customModalOne.show();
+    });
+
+    const playerName2Text = this.add.text(r5.x, r5.y + 32, '', options).setOrigin(0.5);
+    playerName2Text.setInteractive({ useHandCursor: true }).on("pointerdown", () => {
+       customModalTwo.show();
+    });
+
     const playerName3Text = this.add.text(b3.x, b3.y-32, '', options).setOrigin(0.5);
+    playerName3Text.setInteractive({ useHandCursor: true }).on("pointerdown", () => {
+      customModalThree.show();
+   });
+
     const playerName4Text = this.add.text(l5.x, l5.y-32, '', options).setOrigin(0.5);
+    playerName4Text.setInteractive({ useHandCursor: true }).on("pointerdown", () => {
+      customModalFour.show();
+   });
     
+   const customModalOne = new CustomModal(this, socket, 1, playerName1Text);
+   const customModalTwo = new CustomModal(this, socket, 2, playerName2Text);
+   const customModalThree = new CustomModal(this, socket, 3, playerName3Text);
+   const customModalFour = new CustomModal(this, socket, 4, playerName4Text);
+
 
     this.textMarker = this.add.text(0, 0, '*', { color: 'white', fontSize: 'bold 60px', align: 'center'}).setOrigin(0.5);
     this.textMarker.setVisible(false);
@@ -561,6 +588,7 @@ socket.on('user-disconnected', userId => {
 
 
 // -- function section --
+
 
     let snapMarble = (obj, groupObj) => {
       this.gameObject = obj
