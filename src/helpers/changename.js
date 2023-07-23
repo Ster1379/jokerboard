@@ -11,12 +11,12 @@ export default class CustomModal extends Phaser.GameObjects.Container {
 
     // Create the input field
     const options = { fill: "#ffffff", font: "22px Arial"};
-    this.nameInput = this.scene.add.dom(40, 0, 'input', options);
+    this.nameInput = this.scene.add.dom(52, 20, 'input', options);
     this.nameInput.node.placeholder = 'Enter a new name...';
     this.add(this.nameInput);
 
      // Create the close button
-     const closeButton = scene.add.text(0, 50, 'Submit', { font: '22px Arial', fill: '#000000' });
+     const closeButton = scene.add.text(10, 80, 'Submit', { font: '22px Arial', fill: '#000000' });
      closeButton.setOrigin(0.5);
      closeButton.setPadding(5);
      closeButton.setStyle({ backgroundColor: '#FFF' })
