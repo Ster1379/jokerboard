@@ -32,7 +32,7 @@ io.on("connection", (socket) => {
   socket.on("joinServer", ({ roomName, userName, playerNum }) => {
     console.log("join server", roomName, userName, playerNum)
     socket.join(roomName);
-
+   
     if (getClientCount(roomName) > 1 && getClientCount(roomName) <= 4 ){
       socket.to(roomName).emit('new user', {socketId: socket.id, ice: iceinfo});
     }
@@ -43,13 +43,13 @@ io.on("connection", (socket) => {
   } else if (playerNum === '1' || playerNum === '2' || playerNum === '3' || playerNum === '4' ){
       users.push({ gameName: roomName, player: userName, id: socket.id, playernum: playerNum, })
     } 
-    else if(playerNum === null && getClientCount(roomName) === 1){
+    else if(!exist('1', roomName)){
       users.push({ gameName: roomName, player: userName, id: socket.id, playernum: '1', });
-    } else if (playerNum === null && getClientCount(roomName) === 2) {
+    } else if (!exist('2', roomName)) {
       users.push({ gameName: roomName, player: userName, id: socket.id, playernum: '2',  });
-    } else if (playerNum === null && getClientCount(roomName) === 3) {
+    } else if (!exist('3', roomName)) {
       users.push({ gameName: roomName, player: userName, id: socket.id, playernum: '3', });
-    } else if (playerNum === null && getClientCount(roomName) === 4) {
+    } else if (!exist('4', roomName)) {
       users.push({ gameName: roomName, player: userName, id: socket.id, playernum: '4', });
     }
     
@@ -95,7 +95,8 @@ io.on("connection", (socket) => {
     }
     //console.log('filtered game status', socket.id)
     io.to(socket.id).emit("updateGameState", gamestatusupdate, hand, lastcard);
-    
+   // console.log('** Users **',users.filter((e) => e.gameName === roomName))
+    console.log('exixt output', exist('' + playerNum, roomName))
     io.to(roomName).emit("connectToRoom", users.filter((e) => e.gameName === roomName));
     
     socket.on("objMoveData", (obj) => {
@@ -214,6 +215,8 @@ io.on("connection", (socket) => {
     const index = users.findIndex((e) => e.id === socket.id); //get index of user disconnected
     users.splice(index, 1); //remove user
 
+    console.log("disconnect info", playerinfo[0].playernum)
+
     const playersInRoom = users.filter((e) => e.gameName === playerinfo[0].gameName)
     if(playersInRoom.length === 0){
       const indexCardstate = cardstate.findIndex((e) => e.roomName === playerinfo[0].gameName)
@@ -222,12 +225,18 @@ io.on("connection", (socket) => {
     if(playersInRoom.length > 0){
       io.in(playerinfo[0].gameName).emit('connectToRoom', playersInRoom)
       //console.log("remaining player", playersInRoom)
-      io.in(playerinfo[0].gameName).emit( 'user-disconnected', socket.id)
+      io.in(playerinfo[0].gameName).emit( 'user-disconnected', socket.id, playerinfo[0].playernum)
     }
       
   });
 });
 // ----- FUNCTION Section -----------
+
+function exist(playerNum, room){
+  let roomusers = users.filter((e) => e.gameName === room);
+  let check = roomusers.some((user) => user.playernum === playerNum);
+  return check
+}
 
 function getIceServer() {
         

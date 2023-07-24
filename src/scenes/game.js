@@ -171,22 +171,22 @@ document.getElementById('toggle-video').addEventListener('click', (e) => {e.prev
 
   let iconVideo = document.getElementById('buttonVideo')
   if (myStream.getVideoTracks()[0].enabled){
-    if (e.target.classList.contains('btn-outline-secondary')){
+    if (e.target.classList.contains('btn-secondary')){
     iconVideo.className = 'bi bi-camera-video-off-fill'
     myStream.getVideoTracks()[0].enabled = false;
     }
-    else if (e.target.classList.contains('bi-camera-video-fill') || e.target.classList.contains('btn-outline-secondary')){
+    else if (e.target.classList.contains('bi-camera-video-fill') || e.target.classList.contains('btn-secondary')){
       e.target.classList.remove('bi-camera-video-fill');
       e.target.classList.add('bi-camera-video-off-fill');
       myStream.getVideoTracks()[0].enabled = false;
       }
     }
   else {
-    if (e.target.classList.contains('btn-outline-secondary')){
+    if (e.target.classList.contains('btn-secondary')){
         iconVideo.className = 'bi bi-camera-video-fill'
         myStream.getVideoTracks()[0].enabled = true;
     }
-    else if(e.target.classList.contains('bi-camera-video-off-fill') || e.target.classList.contains('btn-outline-secondary')){
+    else if(e.target.classList.contains('bi-camera-video-off-fill') || e.target.classList.contains('btn-secondary')){
         e.target.classList.remove('bi-camera-video-off-fill');
         e.target.classList.add('bi-camera-video-fill');
         myStream.getVideoTracks()[0].enabled = true;
@@ -202,7 +202,7 @@ document.getElementById('toggle-mute').addEventListener('click', (e) => {
 e.preventDefault();
 let iconAudio = document.getElementById('buttonAudio')
   if (myStream.getAudioTracks()[0].enabled){
-    if (e.target.classList.contains('btn-outline-secondary')){
+    if (e.target.classList.contains('btn-secondary')){
       iconAudio.className = 'bi bi-mic-mute-fill'
       myStream.getAudioTracks()[0].enabled = false;
     }
@@ -213,7 +213,7 @@ let iconAudio = document.getElementById('buttonAudio')
       }
   }
   else {
-    if (e.target.classList.contains('btn-outline-secondary')){
+    if (e.target.classList.contains('btn-secondary')){
         iconAudio.className = 'bi bi-mic-fill'
         myStream.getAudioTracks()[0].enabled = true;
     }
@@ -226,11 +226,19 @@ let iconAudio = document.getElementById('buttonAudio')
 broadcastNewTracks(myStream, 'audio')
 });
 
-socket.on('user-disconnected', userId => {
-  console.log('user disconnected', userId, pc)
-  if ( document.getElementById( `${userId}-video` ) ) {
-    
-      document.getElementById( `${userId}-video` ).remove();
+socket.on('user-disconnected', (userId, playernum) => {
+  console.log('user disconnected', userId, playernum, typeof playernum)
+  if (document.getElementById( `${userId}-video`) ) {
+      document.getElementById( `${userId}-video`).remove();
+      if(playernum === '1') {
+        playerName1Text.text = ''
+      } else if(playernum === '2') {
+        playerName2Text.text = ''
+      } else if(playernum === '3') {
+        playerName3Text.text = ''
+      } else if(playernum === '4') {
+        playerName4Text.text = ''
+      }
   }
 })
 
