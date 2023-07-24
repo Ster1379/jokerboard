@@ -232,12 +232,16 @@ socket.on('user-disconnected', (userId, playernum) => {
       document.getElementById( `${userId}-video`).remove();
       if(playernum === '1') {
         playerName1Text.text = ''
+        sessionStorage.removeItem('playerName1')
       } else if(playernum === '2') {
         playerName2Text.text = ''
+        sessionStorage.removeItem('playerName2')
       } else if(playernum === '3') {
         playerName3Text.text = ''
+        sessionStorage.removeItem('playerName3')
       } else if(playernum === '4') {
         playerName4Text.text = ''
+        sessionStorage.removeItem('playerName4')
       }
   }
 })
