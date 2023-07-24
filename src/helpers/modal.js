@@ -1,8 +1,10 @@
 "use strict"
 
 export default class Modal extends Phaser.GameObjects.Container {
-    constructor(scene, x, y, width, height, message) {
+    constructor(scene, x, y, width, height, message, socket) {
       super(scene, x, y);
+
+      this.socket = socket
   
       // Create the background rectangle
       const background = scene.add.rectangle(0, 0, width, height, 0x000000, 0.8);
@@ -21,6 +23,7 @@ export default class Modal extends Phaser.GameObjects.Container {
       closeButton.setStyle({ backgroundColor: '#FFF'})
       closeButton.setInteractive();
       closeButton.on('pointerdown', () => {
+        this.socket.emit('closeModal');
         this.hide();
       });
       this.add(closeButton);
@@ -35,7 +38,7 @@ export default class Modal extends Phaser.GameObjects.Container {
     }
   
     
-    // Show the modal
+    // Show the modal on the screen
     show() {
       this.setVisible(true);
     }

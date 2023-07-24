@@ -294,7 +294,7 @@ socket.on('updateName', (data, playernum) => {
     let l5 = playerMarble(this, 140, 410, 'sphere', 'y', 'l5')
 
     // Create Modal
-    const modal = new Modal(this, 400, 400, 300, 300, '');
+    const modal = new Modal(this, 400, 400, 300, 300, '', socket);
 
     // Create Drop Zone for playing cards
     this.zone = new Zone(this)
@@ -379,6 +379,7 @@ socket.on('updateName', (data, playernum) => {
 
     socket.on('winners', (data) => {
       this.resetGame.setVisible(true)
+      this.textMarker.setVisible(false)
       answer = ''
       this.colorsturn.text = ''
       if(data === 'yb'){
@@ -388,6 +389,10 @@ socket.on('updateName', (data, playernum) => {
         modal.setMessage(`${sessionStorage.getItem('playerName1')} and ${sessionStorage.getItem('playerName3')} are the winners.\n`);
         modal.show(); 
       }
+    })
+
+    socket.on('closeModalBox', () => {
+      modal.hide()
     })
 
     socket.on('colourturn', (data) => {
@@ -452,7 +457,7 @@ socket.on('updateName', (data, playernum) => {
   })
 
   socket.on('cards', (hand) => {
-    console.log('dealt hand', hand)
+    //console.log('dealt hand', hand)
     //Deal initial hand
     for (let i = 0; i < 6; i++) {
         let playerCard = new Card(this);

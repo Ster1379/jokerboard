@@ -108,6 +108,10 @@ io.on("connection", (socket) => {
       socket.to(roomName).emit("marker", posX, posY)
     })
 
+    socket.on('closeModal', () => {
+      socket.to(roomName).emit('closeModalBox')
+    })
+
     socket.on("snapMarbleclient", (obj) => {
         socket.to(roomName).emit("snapMarbleServer", obj)
     });
