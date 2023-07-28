@@ -37,7 +37,6 @@ export default class Game extends Phaser.Scene {
     let myStream = ''
     let pc = []
     let screen = ''
-    let iceServers
 
     // add dom to scene - used for WEBRTC stuff 
     const container = this.add.dom(1375, 250).createFromCache('videodom');
@@ -116,8 +115,6 @@ export default class Game extends Phaser.Scene {
   getAndSetUserStream();
 
  socket.on( 'new user', ( data ) => {
-  iceServers = data.ice
-  console.log('ice info', iceServers)
   socket.emit( 'newUserStart', { to: data.socketId, sender: socket.id} );
   pc.push( data.socketId );
   init( true, data.socketId );
@@ -870,8 +867,8 @@ socket.on('updateName', (data, playernum) => {
 }
 
 function init( createOffer, partnerName ) {
-  //console.log("init- create offer",partnerName)
-  pc[partnerName] = new RTCPeerConnection( iceServers );
+  console.log("init- create offer",partnerName)
+  pc[partnerName] = new RTCPeerConnection( h.getIceServer() );
 
   if ( screen && screen.getTracks().length ) {
       screen.getTracks().forEach( ( track ) => {

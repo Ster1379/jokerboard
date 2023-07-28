@@ -38,7 +38,7 @@ export default class Modal extends Phaser.GameObjects.Container {
     }
   
     
-    // Show the modal on the screen
+    // Show the modal
     show() {
       this.setVisible(true);
     }

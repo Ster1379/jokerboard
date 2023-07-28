@@ -4,7 +4,6 @@ import { createServer } from "http";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
 import path from "path";
-import 'dotenv/config';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -23,18 +22,20 @@ server.listen(PORT, () => {
 let users = [];
 let marblestate = [];
 let cardstate = [];
-let iceinfo = getIceServer()
 
 io.on("connection", (socket) => {
   console.log("User connected..  ", socket.id);
   //console.log('socket connected', socket.connected, process.argv);
 
   socket.on("joinServer", ({ roomName, userName, playerNum }) => {
-    console.log("join server", roomName, userName, playerNum)
+    
+    let passed = checkforalphanumberic(roomName, userName)
     socket.join(roomName);
+    console.log("join server", roomName, userName, playerNum, passed, getClientCount(roomName))
+    
    
     if (getClientCount(roomName) > 1 && getClientCount(roomName) <= 4 ){
-      socket.to(roomName).emit('new user', {socketId: socket.id, ice: iceinfo});
+      socket.to(roomName).emit('new user', {socketId: socket.id});
     }
     if (getClientCount(roomName) > 4){
       console.log('too many players detected',getClientCount(roomName)  )
@@ -235,6 +236,15 @@ io.on("connection", (socket) => {
   });
 });
 // ----- FUNCTION Section -----------
+
+function checkforalphanumberic(rmName, userNam){
+  const alphanumericRegex = /^[a-zA-Z0-9]+$/;
+  if (!alphanumericRegex.test(rmName) || !alphanumericRegex.test(userNam)) {
+   return false  // An invalid character has been found
+  } else
+  return true
+
+}
 
 function exist(playerNum, room){
   let roomusers = users.filter((e) => e.gameName === room);
