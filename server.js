@@ -7,6 +7,13 @@ import path from "path";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+const options = {
+  transports: ["websockets"],
+  allowUpgrades: false,
+  pingInterval: 30000,
+  pingTimeout: 60000,
+  cookie: false
+}
 
 const app = express();
 const server = createServer(app);
@@ -27,15 +34,20 @@ io.on("connection", (socket) => {
   console.log("User connected..  ", socket.id);
   //console.log('socket connected', socket.connected, process.argv);
 
-  socket.on("joinServer", ({ roomName, userName, playerNum }) => {
-    
+  socket.on("joinServer", (data) => {
+    let roomName = data.roomName
+    let userName = data.username
+    let playerNum = data.playerNum
+    let socketID = data.socketId
+    console.log('socket ID =====', data)
     let passed = checkforalphanumberic(roomName, userName)
     socket.join(roomName);
-    console.log("join server", roomName, userName, playerNum, passed, getClientCount(roomName))
+    socket.join(socketID)
+    console.log("join server", roomName, userName, playerNum, passed, getClientCount(roomName), socketID)
     
    
     if (getClientCount(roomName) > 1 && getClientCount(roomName) <= 4 ){
-      socket.to(roomName).emit('new user', {socketId: socket.id});
+      socket.to(roomName).emit('new user', {socketId: data.socketId});
     }
     if (getClientCount(roomName) > 4){
       console.log('too many players detected',getClientCount(roomName)  )
@@ -57,7 +69,7 @@ io.on("connection", (socket) => {
      // -------------WebRTC stuff ---------------------
 
       socket.on( 'newUserStart', ( data ) => {
-        //console.log('new user joins:', data.sender, data.to)
+        console.log('new user joins:', data.sender, data.to)
           socket.to( data.to ).emit( 'newUserStart', { sender: data.sender } );
       } );
 

@@ -37,6 +37,7 @@ export default class Game extends Phaser.Scene {
     let myStream = ''
     let pc = []
     let screen = ''
+    let socId = ''
 
     // add dom to scene - used for WEBRTC stuff 
     const container = this.add.dom(1375, 250).createFromCache('videodom');
@@ -53,7 +54,13 @@ export default class Game extends Phaser.Scene {
     socket.on("connect", () => {
       console.log("socket on connect: ", socket.id, socket.connected);//socket.io.engine
       playerNum = sessionStorage.getItem("playerNum")
-      socket.emit("joinServer", { roomName, userName, playerNum });
+      socId = socket.id
+      console.log('socket iD ===== ', socId)
+      socket.emit("joinServer", { 
+        roomName: roomName,
+        userName: userName, 
+        playerNum: playerNum, 
+        socketId: socId });
       socket.on("connectToRoom", (users) => {
         console.log('data recieved from server: ', users)
         let playerobj = users.filter((e) => e.player === userName);
