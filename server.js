@@ -36,7 +36,7 @@ io.on("connection", (socket) => {
 
   socket.on("joinServer", (data) => {
     let roomName = data.roomName
-    let userName = data.username
+    let userName = data.userName
     let playerNum = data.playerNum
     let socketID = data.socketId
     console.log('socket ID =====', data)

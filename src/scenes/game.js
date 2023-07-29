@@ -64,6 +64,7 @@ export default class Game extends Phaser.Scene {
       socket.on("connectToRoom", (users) => {
         console.log('data recieved from server: ', users)
         let playerobj = users.filter((e) => e.player === userName);
+        console.log('playerobj', playerobj)
         sessionStorage.setItem("playerNum", playerobj[0].playernum);
 
         let pp1 = users.some(p => p.playernum === '1')
