@@ -42,18 +42,17 @@ io.on("connection", (socket) => {
     let userName = data.userName
     let playerNum = data.playerNum
     let socketID = data.socketId
-    console.log('socket ID =====', data)
     let passed = checkforalphanumberic(roomName, userName)
     socket.join(roomName);
     socket.join(socketID)
-    console.log("join server", roomName, userName, playerNum, passed, getClientCount(roomName), socketID)
+    //console.log("join server", roomName, userName, playerNum, passed, getClientCount(roomName), socketID)
     
    
     if (getClientCount(roomName) > 1 && getClientCount(roomName) <= 4 ){
       socket.to(roomName).emit('new user', {socketId: data.socketId});
     }
     if (getClientCount(roomName) > 4){
-      console.log('too many players detected',getClientCount(roomName)  )
+      //console.log('too many players detected',getClientCount(roomName)  )
       users.push({ gameName: roomName, player: userName, id: socket.id, playernum: '5',})
       io.to(socket.id).emit('playerWarning')
   } else if (playerNum === '1' || playerNum === '2' || playerNum === '3' || playerNum === '4' ){
@@ -72,7 +71,7 @@ io.on("connection", (socket) => {
      // -------------WebRTC stuff ---------------------
 
       socket.on( 'newUserStart', ( data ) => {
-        console.log('new user joins:', data.sender, data.to)
+        //console.log('new user joins:', data.sender, data.to)
           socket.to( data.to ).emit( 'newUserStart', { sender: data.sender } );
       } );
 
@@ -83,6 +82,12 @@ io.on("connection", (socket) => {
       socket.on( 'ice candidates', ( data ) => {
           socket.to( data.to ).emit( 'ice candidates', { candidate: data.candidate, sender: data.sender } );
       } );
+
+      socket.on("getIceServer_info", () => {
+        socket.emit('iceServer',  iceServer)
+      })
+      
+      
 
       // ************ END OF WEBRTC Stuff  ********************
 
@@ -112,7 +117,7 @@ io.on("connection", (socket) => {
     //console.log('filtered game status', socket.id)
     io.to(socket.id).emit("updateGameState", gamestatusupdate, hand, lastcard);
    // console.log('** Users **',users.filter((e) => e.gameName === roomName))
-    console.log('exixt output', exist('' + playerNum, roomName))
+    //console.log('exixt output', exist('' + playerNum, roomName))
     io.to(roomName).emit("connectToRoom", users.filter((e) => e.gameName === roomName));
     
     socket.on("objMoveData", (obj) => {
@@ -133,7 +138,7 @@ io.on("connection", (socket) => {
     });
 
     socket.on('winner', (data) => {
-      console.log('winner', data)
+      //console.log('winner', data)
       io.in(roomName).emit('winners', data)
     })
 
@@ -142,9 +147,9 @@ io.on("connection", (socket) => {
       //console.log('user DB', users)
       //const info = users.filter((e) => e.id === socket.id) //get player info
       const index = users.findIndex((e) => e.id === id); //get index of user disconnected
-      console.log('users data', index, users[index])
+      //console.log('users data', index, users[index])
       users[index].player = data
-      console.log('update data', users[index],roomName)
+      //console.log('update data', users[index],roomName)
       socket.to(roomName).emit('updateName', data, playernum)
     })
 
@@ -162,7 +167,7 @@ io.on("connection", (socket) => {
     socket.on('dealCardsclient', () => {
        let guests = users.filter((function(e){return e.gameName === roomName;}))
        if(guests.length !== 4){
-        console.log("number of players not equal to 4")
+        //console.log("number of players not equal to 4")
         io.to(socket.id).emit('alertmsg')
        } else {
           const indexCardstate = cardstate.findIndex((e) => e.roomName === roomName)
@@ -267,9 +272,7 @@ function exist(playerNum, room){
   return check
 }
 
-function getIceServer() {
-        
-  return {
+const iceServer = {
       iceServers: [
           {
               urls: ["stun:us-turn9.xirsys.com"]
@@ -289,7 +292,6 @@ function getIceServer() {
           }
       ]
   };
-}
 
 function getClientCount(roomName) {
   const room = io.sockets.adapter.rooms.get(roomName);

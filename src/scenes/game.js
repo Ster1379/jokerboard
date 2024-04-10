@@ -47,7 +47,7 @@ export default class Game extends Phaser.Scene {
     let c2 = this.add.circle(1005, 105, 11, 0x000000)
     let c3 = this.add.circle(1035, 105, 11, 0x000000)
     let c4 = this.add.circle(1065, 105, 11, 0x000000)
-    console.log("session storage for Username =", userName, roomName, playerNum)
+    //console.log("session storage for Username =", userName, roomName, playerNum)
 
     const socket = io({ transports: ["websocket"] });
 
@@ -55,16 +55,16 @@ export default class Game extends Phaser.Scene {
       console.log("socket on connect: ", socket.id, socket.connected);//socket.io.engine
       playerNum = sessionStorage.getItem("playerNum")
       socId = socket.id
-      console.log('socket iD ===== ', socId)
+      //console.log('socket iD ===== ', socId)
       socket.emit("joinServer", { 
         roomName: roomName,
         userName: userName, 
         playerNum: playerNum, 
         socketId: socId });
       socket.on("connectToRoom", (users) => {
-        console.log('data recieved from server: ', users)
+        //console.log('data recieved from server: ', users)
         let playerobj = users.filter((e) => e.player === userName);
-        console.log('playerobj', playerobj)
+        //console.log('playerobj', playerobj)
         sessionStorage.setItem("playerNum", playerobj[0].playernum);
 
         let pp1 = users.some(p => p.playernum === '1')
@@ -252,7 +252,7 @@ socket.on('user-disconnected', (userId, playernum) => {
 })
 
 socket.on('updateName', (data, playernum) => {
-  console.log('update the name on board', data, playernum, typeof playernum)
+  //console.log('update the name on board', data, playernum, typeof playernum)
   if (playernum === 1){
     sessionStorage.setItem('playerName1', data)
     playerName1Text.text = data;
@@ -875,8 +875,14 @@ socket.on('updateName', (data, playernum) => {
 }
 
 function init( createOffer, partnerName ) {
-  console.log("init- create offer",partnerName)
-  pc[partnerName] = new RTCPeerConnection( h.getIceServer() );
+  //console.log("init- create offer",partnerName)
+  let ice;
+  socket.emit("getIceServer_info")
+  socket.on('iceServer', (data) => {
+    ice = data
+  })
+
+  pc[partnerName] = new RTCPeerConnection( ice );
 
   if ( screen && screen.getTracks().length ) {
       screen.getTracks().forEach( ( track ) => {

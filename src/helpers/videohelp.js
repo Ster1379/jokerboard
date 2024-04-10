@@ -13,7 +13,7 @@ export default {
 
 
     getUserFullMedia() {
-        console.log('camera available',this.userMediaAvailable())
+        //console.log('camera available',this.userMediaAvailable())
         if ( this.userMediaAvailable() ) {
             return navigator.mediaDevices.getUserMedia( {
                 video: {width: {ideal: 1280}, height: {ideal: 720}, frameRate: {ideal: 30, min: 15} },
